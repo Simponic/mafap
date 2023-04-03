@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Param,
+  Query,
   NotFoundException,
   BadRequestException,
   Res,
@@ -20,6 +20,11 @@ export class LoginUserDTO {
   signature: string;
 }
 
+export class RetrieveTokenDTO {
+  @IsNotEmpty()
+  name: string;
+}
+
 @Controller('/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,9 +39,9 @@ export class AuthController {
     return await this.authService.deleteToken(req.token);
   }
 
-  @Get('/:name')
-  async retrieveGodToken(@Param('name') name: string) {
-    const friend = await this.authService.findFriendByName(name);
+  @Get('/')
+  async retrieveGodToken(@Query() query: RetrieveTokenDTO) {
+    const friend = await this.authService.findFriendByName(query.name);
     if (!friend) throw new NotFoundException('Friend not found with that name');
 
     return await this.authService.createTokenForFriend(friend);
@@ -78,7 +83,7 @@ export class AuthController {
         expires: referencedToken.expiration,
       });
 
-      return await this.authService.signToken(token);
+      return { ...(await this.authService.signToken(token)), friend };
     }
 
     throw new BadRequestException(
