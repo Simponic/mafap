@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: friendsdbdev
+    image: postgres:15
+    restart: always
+    env_file: .env.dev
+    networks:
+      - db
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  nginx:
+    container_name: friendsproxydev
+    restart: always
+    ports:
+      - 8000:80
+    networks:
+      - app
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+
+  server:
+    container_name: friendsserver
+    restart: always
+    env_file: .env.dev
+    build:
+      context: ./server
+      target: development
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./server:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - app
+      - db
+
+  client:
+    container_name: friendsclient
+    build:
+      context: ./client
+      target: development
+      dockerfile: Dockerfile.dev
+    networks:
+      - app
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+networks:
+  app:
+    driver: bridge
+  db:
+    driver: bridge
+
+volumes:
+  pgdata:

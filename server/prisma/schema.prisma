@@ -1,0 +1,52 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// My divine intellect has allowed to me to communicate with God.
+// These tokens. These are divine tokens.
+model GodToken {
+  token      String   @unique @db.VarChar(512)
+  friend     Friend?  @relation(fields: [friend_id], references: [id])
+  friend_id  Int?
+  signed     Boolean  @default(false)
+  expiration DateTime
+}
+
+model Friend {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique @db.Citext
+  public_key     String           @db.Text
+
+  timers         Timer[]
+  god_tokens     GodToken[]
+  TimerRefreshes TimerRefreshes[]
+}
+
+model Timer {
+  id                 Int              @id @default(autoincrement())
+  start              DateTime
+  name               String           @unique
+
+  timer_refreshes    TimerRefreshes[]
+  referenced_friends Friend[]
+}
+
+model TimerRefreshes {
+  id              Int      @id @default(autoincrement())
+  start           DateTime
+  end             DateTime
+
+  refreshed_by    Friend   @relation(fields: [refreshed_by_id], references: [id])
+  refreshed_by_id Int
+
+  timer    Timer @relation(fields: [timer_id], references: [id])
+  timer_id Int
+
+  @@index([end])
+}
