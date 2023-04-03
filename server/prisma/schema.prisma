@@ -19,30 +19,34 @@ model GodToken {
 }
 
 model Friend {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique @db.Citext
-  public_key     String           @db.Text
+  id         Int    @id @default(autoincrement())
+  name       String @unique @db.Citext
+  public_key String @db.Text
 
-  timers         Timer[]
+  referenced_in  Timer[]          @relation(name: "referenced_friend_fk")
+  created_timers Timer[]          @relation(name: "created_by_fk")
   god_tokens     GodToken[]
   TimerRefreshes TimerRefreshes[]
 }
 
 model Timer {
-  id                 Int              @id @default(autoincrement())
-  start              DateTime
-  name               String           @unique
+  id    Int      @id @default(autoincrement())
+  start DateTime? @default(now())
+  name  String   @unique
+
+  created_by    Friend @relation(name: "created_by_fk", fields: [created_by_id], references: [id])
+  created_by_id Int
 
   timer_refreshes    TimerRefreshes[]
-  referenced_friends Friend[]
+  referenced_friends Friend[]         @relation(name: "referenced_friend_fk")
 }
 
 model TimerRefreshes {
-  id              Int      @id @default(autoincrement())
-  start           DateTime
-  end             DateTime
+  id    Int      @id @default(autoincrement())
+  start DateTime
+  end   DateTime
 
-  refreshed_by    Friend   @relation(fields: [refreshed_by_id], references: [id])
+  refreshed_by    Friend @relation(fields: [refreshed_by_id], references: [id])
   refreshed_by_id Int
 
   timer    Timer @relation(fields: [timer_id], references: [id])

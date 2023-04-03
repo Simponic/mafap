@@ -10,20 +10,12 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { IsNotEmpty } from 'class-validator';
+
 import { readKey, readCleartextMessage, verify } from 'openpgp';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
 
-export class LoginUserDTO {
-  @IsNotEmpty()
-  signature: string;
-}
-
-export class RetrieveTokenDTO {
-  @IsNotEmpty()
-  name: string;
-}
+import { RetrieveFriendDTO, SignedGodTokenDTO } from '../dto/dtos';
 
 @Controller('/auth')
 export class AuthController {
@@ -40,7 +32,7 @@ export class AuthController {
   }
 
   @Get('/')
-  async retrieveGodToken(@Query() query: RetrieveTokenDTO) {
+  async makeGodToken(@Query() query: RetrieveFriendDTO) {
     const friend = await this.authService.findFriendByName(query.name);
     if (!friend) throw new NotFoundException('Friend not found with that name');
 
@@ -50,7 +42,7 @@ export class AuthController {
   @Post()
   async verifyFriend(
     @Res({ passthrough: true }) res,
-    @Body() { signature }: LoginUserDTO,
+    @Body() { signature }: SignedGodTokenDTO,
   ) {
     let signatureObj;
     try {
