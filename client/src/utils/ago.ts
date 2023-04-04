@@ -1,5 +1,5 @@
 // thanks, chatgpt
-export function ago(date) {
+export function ago(date: Date) {
   const timeElapsed = Date.now() - date.getTime();
   const days = Math.floor(timeElapsed / (1000 * 60 * 60 * 24));
   const hours = Math.floor(

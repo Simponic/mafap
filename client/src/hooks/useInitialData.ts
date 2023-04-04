@@ -1,4 +1,4 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { useState, useEffect } from "react";
 
 export interface UseInitialDataProps {
@@ -11,7 +11,7 @@ export const useInitialData = <T>(props: UseInitialDataProps) => {
   const [data, setData] = useState<T>();
   const [query, setQuery] = useState(props?.query);
   const [endpoint, setEndpoint] = useState(props.initialDataEndpoint);
-  const [socket, setSocket] = useState();
+  const [socket, setSocket] = useState<Socket>();
 
   const refreshData = () =>
     fetch(endpoint)

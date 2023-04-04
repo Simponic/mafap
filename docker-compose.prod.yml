@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: friendsdbprod
+    image: postgres:15
+    restart: always
+    env_file: .env.prod
+    networks:
+      - db
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  nginx:
+    container_name: friendsproxyprod
+    restart: always
+    ports:
+      - 25822:80
+    networks:
+      - app
+    depends_on:
+      - server
+    build:
+      context: ./
+      dockerfile: ./nginx/Dockerfile.prod
+
+  server:
+    container_name: friendsserver
+    restart: always
+    env_file: .env.prod
+    build:
+      context: ./server
+      dockerfile: Dockerfile.prod
+    networks:
+      - app
+      - db
+
+networks:
+  app:
+    driver: bridge
+  db:
+    driver: bridge
+
+volumes:
+  pgdata:

@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (friendId) {
-      localStorage.setItem("friendId", friendId);
+      localStorage.setItem("friendId", friendId.toString());
     }
   }, [friendId]);
 

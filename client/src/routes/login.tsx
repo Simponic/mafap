@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthContext } from "../context/authContext";
+import { SignThisTokenResponse, TokenResponse } from "../utils/types";
 import "../styles/login.css";
 
-const requestTokenSubmit = async (name) =>
+const requestTokenSubmit = async (
+  name: string
+): Promise<SignThisTokenResponse> =>
   fetch(
     "/api/auth?" +
       new URLSearchParams({
@@ -11,7 +14,7 @@ const requestTokenSubmit = async (name) =>
       })
   ).then((r) => r.json());
 
-const submitSignedToken = async (signature) =>
+const submitSignedToken = async (signature: string): Promise<TokenResponse> =>
   fetch("/api/auth", {
     method: "POST",
     body: JSON.stringify({
@@ -23,41 +26,43 @@ const submitSignedToken = async (signature) =>
   }).then((r) => r.json());
 
 export default function Login() {
-  const [token, setToken] = useState("");
-  const [errors, setErrors] = useState([]);
+  const [token, setToken] = useState<string>("");
+  const [errors, setErrors] = useState<string[]>([]);
 
   const { signedIn, setSignedIn, setSessionOver, setFriendId, setFriendName } =
     useAuthContext();
 
-  const getTokenFormSubmission = async (e) => {
+  const getTokenFormSubmission = async (e: any) => {
     e.preventDefault();
     const { error, message, token } = await requestTokenSubmit(
       e.target.name.value
     );
-    if (error && message) {
+    if (message && error) {
       setErrors([message]);
       return;
     }
-    setErrors([]);
-    setToken(token);
+    if (token) {
+      setErrors([]);
+      setToken(token);
+    }
   };
 
-  const signTokenFormSubmission = async (e) => {
+  const signTokenFormSubmission = async (e: any) => {
     e.preventDefault();
     const { error, message, token, expiration, friend } =
       await submitSignedToken(e.target.signature.value);
 
-    if (token) {
+    if (token && expiration && friend) {
       setSignedIn(true);
       setSessionOver(new Date(expiration));
-      setFriendId(friend.id.toString());
+      setFriendId(friend.id);
       setFriendName(friend.name);
 
       return;
     }
 
-    if (error & message) {
-      setErrors([message]);
+    if (error && message) {
+      setErrors([message as string]);
     }
   };
 
@@ -97,7 +102,7 @@ export default function Login() {
           <textarea
             id="signature"
             name="signature"
-            rows="6"
+            rows={6}
             placeholder="-----BEGIN PGP SIGNED MESSAGE-----"
           />
 

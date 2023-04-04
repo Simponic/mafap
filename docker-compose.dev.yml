@@ -44,7 +44,6 @@ services:
     container_name: friendsclient
     build:
       context: ./client
-      target: development
       dockerfile: Dockerfile.dev
     networks:
       - app

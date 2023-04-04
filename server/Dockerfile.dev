@@ -1,4 +1,4 @@
-FROM node:16.20.0-alpine AS development
+FROM node:16-alpine
 
 WORKDIR /usr/src/app
 
@@ -9,6 +9,5 @@ RUN npm install glob rimraf
 RUN npm install --only=development
 
 COPY . .
-
 
 CMD npx -y prisma generate ; npm run start:dev

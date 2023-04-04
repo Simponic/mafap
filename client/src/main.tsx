@@ -6,7 +6,7 @@ import { AuthProvider } from "./context/authContext";
 import NotFound from "./routes/notFound";
 import Login from "./routes/login";
 import Timers from "./routes/timers";
-import ProtectedRoute from "./routes/protected.tsx";
+import ProtectedRoute from "./routes/protected";
 
 import "chota";
 import "./styles/index.css";

@@ -4,24 +4,9 @@ import TimerCard from "../components/timerCard";
 import TimerHeader from "../components/timerHeader";
 import { useInitialData } from "../hooks/useInitialData";
 
-export type TimersFilter = {
-  friendId: undefined | number; // when undefined, get all
-};
+import { Friend, TimersFilter, TimerResponse } from "../utils/types";
 
-export type Friend = {
-  id: number;
-  name: number;
-};
-
-export type TimerResponse = {
-  id: number;
-  name: string;
-  start: Date;
-  created_by: Friend;
-  referenced_friends: Friend[];
-};
-
-const makeEndpoint = (filter: TimersFilter) => {
+const makeEndpoint = (filter?: TimersFilter) => {
   let url = "/api/timers";
   if (filter && typeof filter.friendId !== "undefined")
     url += `/friend?id=${filter.friendId}`;
@@ -38,20 +23,19 @@ export default function Timers() {
     socket,
     setEndpoint,
   } = useInitialData<TimerResponse[]>({
-    initialDataEndpoint: makeEndpoint({}),
+    initialDataEndpoint: makeEndpoint(),
     namespace: "/events/timers",
-    query: {},
   });
-  const [friends, setFriends] = useState([]);
-  const [selected, setSelected] = useState();
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [selected, setSelected] = useState<TimersFilter | undefined>();
 
   useEffect(() => {
     fetch("/api/auth/friends")
       .then((r) => r.json())
-      .then((friends) => setFriends(friends));
+      .then((friends: Friend[]) => setFriends(friends));
   }, []);
 
-  const onSelect = (selected: TimersFilter) => {
+  const onSelect = (selected?: TimersFilter) => {
     setSelected(selected);
     setEndpoint(makeEndpoint(selected));
     setQuery(selected);
@@ -60,7 +44,7 @@ export default function Timers() {
   useEffect(() => {
     socket?.on("refreshed", (newTimer: TimerResponse) => {
       setTimers((timers) =>
-        timers.map((timer) => {
+        timers?.map((timer) => {
           if (timer.id === newTimer.id) return newTimer;
           return timer;
         })
@@ -68,7 +52,12 @@ export default function Timers() {
     });
 
     socket?.on("created", (newTimer: TimerResponse) => {
-      setTimers((timers) => [...timers, newTimer]);
+      setTimers((timers) => {
+        if (timers) {
+          return [...timers, newTimer];
+        }
+        return [newTimer];
+      });
     });
   }, [socket]);
 
@@ -81,7 +70,12 @@ export default function Timers() {
             ...timer,
             start: new Date(timer.start),
           }))
-          .sort(({ start: startA }, { start: startB }) => startB - startA)
+          .sort(
+            (
+              { start: startA }: { start: Date },
+              { start: startB }: { start: Date }
+            ) => startB.getTime() - startA.getTime()
+          )
           .map((timer) => (
             <TimerCard onSelect={onSelect} timer={timer} key={timer.id} />
           ))

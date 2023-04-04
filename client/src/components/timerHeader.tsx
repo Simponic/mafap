@@ -4,20 +4,31 @@ import { Mention, MentionsInput } from "react-mentions";
 import { useAuthContext } from "../context/authContext";
 import mentionStyles from "../styles/mention";
 import modalStyles from "../styles/modal";
+import { Friend, TimersFilter, TimerResponse } from "../utils/types";
 
 Modal.setAppElement("#root");
 
-export default function TimerHeader({ friends, selected, onSelect }) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [newTimerName, setNewTimerName] = useState("");
-  const [errors, setErrors] = useState([]);
+export type TimerHeaderProps = {
+  friends: Friend[];
+  selected?: TimersFilter;
+  onSelect: (selected?: TimersFilter) => void;
+};
+
+export default function TimerHeader({
+  friends,
+  selected,
+  onSelect,
+}: TimerHeaderProps) {
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [newTimerName, setNewTimerName] = useState<string>("");
+  const [errors, setErrors] = useState<string[]>([]);
   const { friendName, setSignedIn } = useAuthContext();
 
   const logout = () => {
     fetch("/api/auth/logout").then(() => setSignedIn(false));
   };
 
-  const createTimer = (e) => {
+  const createTimer = (e: any) => {
     e.preventDefault();
 
     fetch("/api/timers", {
@@ -33,7 +44,7 @@ export default function TimerHeader({ friends, selected, onSelect }) {
       },
     })
       .then((r) => r.json())
-      .then((r) => {
+      .then((r: TimerResponse) => {
         if (r.message) {
           setErrors([r.message]);
           return;
@@ -72,10 +83,11 @@ export default function TimerHeader({ friends, selected, onSelect }) {
                 <MentionsInput
                   style={mentionStyles}
                   value={newTimerName}
-                  onChange={(e) => setNewTimerName(e.target.value)}
+                  onChange={(e: any) => setNewTimerName(e.target.value)}
                 >
                   <Mention
-                    data={friends.map(({ id, name }) => ({
+                    trigger="@"
+                    data={friends.map(({ id, name }: Friend) => ({
                       id: `@<${id}>`,
                       display: `@${name}`,
                     }))}
@@ -108,7 +120,7 @@ export default function TimerHeader({ friends, selected, onSelect }) {
             >
               all
             </a>
-            {friends.map((friend) => (
+            {friends.map((friend: Friend) => (
               <a
                 key={friend.id}
                 onClick={() => {

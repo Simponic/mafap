@@ -1,28 +1,42 @@
-import { ago } from "../utils/ago";
 import { useEffect, useState } from "react";
+import { ago } from "../utils/ago";
+import { TimerResponse, Friend, TimersFilter } from "../utils/types";
 
-const replaceReferencedFriendsInName = (name, referencedFriends, onSelect) => {
-  const friendIdToFriend = referencedFriends.reduce((friendMap, friend) => {
-    friendMap[friend.id] = friend;
-    return friendMap;
-  }, {});
-  return name.split(/(@\<\d+\>)/g).map((s) => {
+const replaceReferencedFriendsInName = (
+  name: string,
+  referencedFriends: Friend[],
+  onSelect: (select?: TimersFilter) => void
+) => {
+  const friendIdToFriend = referencedFriends.reduce(
+    (friendMap: Record<string, Friend>, friend) => {
+      friendMap[friend.id.toString()] = friend;
+      return friendMap;
+    },
+    {}
+  );
+
+  return name.split(/(@\<\d+\>)/g).map((s: string) => {
     const matches = /@\<(\d+)\>/g.exec(s);
     if (matches) {
       const [_match, id] = matches;
       const name = friendIdToFriend[id].name;
 
-      return <a onClick={() => onSelect({ friendId: id })}>{name}</a>;
+      return <a onClick={() => onSelect({ friendId: Number(id) })}>{name}</a>;
     }
     return s;
   });
 };
 
-export default function TimerCard({ timer, onSelect }) {
-  const [since, setSince] = useState(ago(timer.start));
+export type TimerCardProps = {
+  timer: TimerResponse;
+  onSelect: (select?: TimersFilter) => void;
+};
+
+export default function TimerCard({ timer, onSelect }: TimerCardProps) {
+  const [since, setSince] = useState<string>(ago(timer.start));
 
   useEffect(() => {
-    let updateTimersInterval;
+    let updateTimersInterval: ReturnType<typeof setInterval>;
     const msTillNextSecond = 1000 - (timer.start.getTime() % 1000);
 
     setTimeout(() => {
@@ -42,8 +56,8 @@ export default function TimerCard({ timer, onSelect }) {
         timer.name,
         timer.referenced_friends,
         onSelect
-      ).map((s, i) => (
-        <span key={i}>{s}</span>
+      ).map((element: JSX.Element | string, i: number) => (
+        <span key={i}>{element}</span>
       ))}
     </h1>
   );
