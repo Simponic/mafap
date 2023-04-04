@@ -1,28 +1,47 @@
 import Modal from "react-modal";
 import { useEffect, useState } from "react";
+import { Mention, MentionsInput } from "react-mentions";
 import { useAuthContext } from "../context/authContext";
-
-const customStyles = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    width: "40vw",
-    maxWidth: "800px",
-  },
-};
+import mentionStyles from "../styles/mention";
+import modalStyles from "../styles/modal";
 
 Modal.setAppElement("#root");
 
 export default function TimerHeader({ friends, selected, onSelect }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [newTimerName, setNewTimerName] = useState("");
+  const [errors, setErrors] = useState([]);
   const { friendName, setSignedIn } = useAuthContext();
 
   const logout = () => {
     fetch("/api/auth/logout").then(() => setSignedIn(false));
+  };
+
+  const createTimer = (e) => {
+    e.preventDefault();
+
+    fetch("/api/timers", {
+      method: "POST",
+      body: JSON.stringify({
+        name: newTimerName.replaceAll(
+          /\[@[\w\d\s]+\]\((\@<\d+>)\)/g,
+          (_match, atId) => atId
+        ),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((r) => r.json())
+      .then((r) => {
+        if (r.message) {
+          setErrors([r.message]);
+          return;
+        }
+        setNewTimerName("");
+        setErrors([]);
+        setModalOpen(false);
+      });
   };
 
   return (
@@ -30,7 +49,7 @@ export default function TimerHeader({ friends, selected, onSelect }) {
       <Modal
         isOpen={modalOpen}
         onRequestClose={() => setModalOpen(false)}
-        style={customStyles}
+        style={modalStyles}
       >
         <div id="createTimerModal">
           <div>
@@ -42,13 +61,35 @@ export default function TimerHeader({ friends, selected, onSelect }) {
                 marginBottom: "1rem",
               }}
             >
-              <span>New Timer</span>
+              <h4 style={{ margin: "none" }}>New Timer</h4>
+
               <a onClick={() => setModalOpen(false)} className="button outline">
                 &times;
               </a>
             </div>
             <div>
-              <form>
+              <form onSubmit={createTimer}>
+                <MentionsInput
+                  style={mentionStyles}
+                  value={newTimerName}
+                  onChange={(e) => setNewTimerName(e.target.value)}
+                >
+                  <Mention
+                    data={friends.map(({ id, name }) => ({
+                      id: `@<${id}>`,
+                      display: `@${name}`,
+                    }))}
+                  />
+                </MentionsInput>
+                {errors.length ? (
+                  errors.map((error, i) => (
+                    <div key={i} className="text-error">
+                      {error}
+                    </div>
+                  ))
+                ) : (
+                  <></>
+                )}
                 <button type="submit">Add</button>
               </form>
             </div>

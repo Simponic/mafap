@@ -31,9 +31,11 @@ export default function Login() {
 
   const getTokenFormSubmission = async (e) => {
     e.preventDefault();
-    const { error, token } = await requestTokenSubmit(e.target.name.value);
-    if (error) {
-      setErrors([error]);
+    const { error, message, token } = await requestTokenSubmit(
+      e.target.name.value
+    );
+    if (error && message) {
+      setErrors([message]);
       return;
     }
     setErrors([]);
@@ -42,9 +44,8 @@ export default function Login() {
 
   const signTokenFormSubmission = async (e) => {
     e.preventDefault();
-    const { error, token, expiration, friend } = await submitSignedToken(
-      e.target.signature.value
-    );
+    const { error, message, token, expiration, friend } =
+      await submitSignedToken(e.target.signature.value);
 
     if (token) {
       setSignedIn(true);
@@ -55,7 +56,9 @@ export default function Login() {
       return;
     }
 
-    setErrors([error]);
+    if (error & message) {
+      setErrors([message]);
+    }
   };
 
   if (signedIn) {
