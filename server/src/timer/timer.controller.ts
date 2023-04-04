@@ -39,7 +39,6 @@ export class TimerController {
   public async getFriendTimers(@Query() { id, name }: RetrieveFriendDTO) {
     const friend = await this.authService.findFriendByNameOrId(name, id);
     if (!friend) throw new NotFoundException('Friend not found by that query');
-
     return await this.timerService.friendTimers(friend);
   }
 

@@ -10,10 +10,11 @@ export interface UseInitialDataProps {
 export const useInitialData = <T>(props: UseInitialDataProps) => {
   const [data, setData] = useState<T>();
   const [query, setQuery] = useState(props?.query);
+  const [endpoint, setEndpoint] = useState(props.initialDataEndpoint);
   const [socket, setSocket] = useState();
 
   const refreshData = () =>
-    fetch(props.initialDataEndpoint)
+    fetch(endpoint)
       .then((r) => r.json())
       .then((r: T) => {
         setData(r);
@@ -35,5 +36,14 @@ export const useInitialData = <T>(props: UseInitialDataProps) => {
     };
   }, [query]);
 
-  return { data, refreshData, query, setQuery, socket, setData };
+  return {
+    data,
+    refreshData,
+    query,
+    setQuery,
+    socket,
+    setData,
+    setEndpoint,
+    endpoint,
+  };
 };

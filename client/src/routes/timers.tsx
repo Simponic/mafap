@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
+
 import TimerCard from "../components/timerCard";
 import TimerHeader from "../components/timerHeader";
 import { useInitialData } from "../hooks/useInitialData";
 
 export type TimersFilter = {
   friendId: undefined | number; // when undefined, get all
-};
-
-export type TimersProps = {
-  filter: TimersFilter;
 };
 
 export type Friend = {
@@ -24,26 +21,14 @@ export type TimerResponse = {
   referenced_friends: Friend[];
 };
 
-const putSince = (timers) =>
-  timers.map((timer) => ({
-    ...timer,
-    since: "10 seconds ago",
-  }));
-
-const makeInitialDataEndpoint = (filter: TimersFilter) => {
+const makeEndpoint = (filter: TimersFilter) => {
   let url = "/api/timers";
   if (filter && typeof filter.friendId !== "undefined")
-    url += `?id=${filter.friendId}`;
+    url += `/friend?id=${filter.friendId}`;
   return url;
 };
 
-const makeQuery = (filter: TimersFilter) => {
-  if (filter && typeof filter.friendId !== "undefined")
-    return { friend: filter.friendId };
-  return {};
-};
-
-export default function Timers({ filter }: TimersProps) {
+export default function Timers() {
   const {
     data: timers,
     refreshData: refreshTimers,
@@ -51,10 +36,11 @@ export default function Timers({ filter }: TimersProps) {
     query,
     setQuery,
     socket,
+    setEndpoint,
   } = useInitialData<TimerResponse[]>({
-    initialDataEndpoint: makeInitialDataEndpoint(filter),
+    initialDataEndpoint: makeEndpoint({}),
     namespace: "/events/timers",
-    query: makeQuery(filter),
+    query: {},
   });
 
   useEffect(() => {
@@ -72,20 +58,25 @@ export default function Timers({ filter }: TimersProps) {
     });
   }, [socket]);
 
-  useEffect(() => {
-    const updateTimersInterval = setInterval(() => {
-      setTimers((timers) => putSince(timers));
-    }, 1_000);
-
-    return () => clearInterval(updateTimersInterval);
-  }, []);
-
   return (
-    <>
-      <TimerHeader />
-      {timers?.map((timer) => (
-        <TimerCard timer={timer} key={timer.id} />
-      ))}
-    </>
+    <div className="container">
+      <TimerHeader
+        onSelect={(selected: TimersFilter) => {
+          setEndpoint(makeEndpoint(selected));
+          setQuery(selected);
+        }}
+      />
+      {timers ? (
+        timers
+          .map((timer) => ({
+            ...timer,
+            start: new Date(timer.start),
+          }))
+          .sort(({ start: startA }, { start: startB }) => startB - startA)
+          .map((timer) => <TimerCard timer={timer} key={timer.id} />)
+      ) : (
+        <></>
+      )}
+    </div>
   );
 }

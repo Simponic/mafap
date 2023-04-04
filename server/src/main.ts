@@ -11,7 +11,6 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
-  // TODO: Remove
   app.enableCors();
 
   // All WS connections must be auth'd

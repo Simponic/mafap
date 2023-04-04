@@ -35,14 +35,15 @@ export class TimerService {
     return this.prismaService.timer.findMany({
       select: {
         ...TimerService.TIMER_SELECT,
+        ...TimerService.INCLUDE_FRIENDS_SELECT,
+      },
+      where: {
         referenced_friends: {
-          where: {
-            id: friend.id,
+          some: {
+            id: {
+              equals: friend.id,
+            },
           },
-          select: AuthService.FRIEND_SELECT,
-        },
-        created_by: {
-          select: AuthService.FRIEND_SELECT,
         },
       },
     });

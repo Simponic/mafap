@@ -11,6 +11,7 @@ export class RetrieveFriendDTO {
   name: string;
 
   @ValidateIf((rfd) => !rfd.id || rfd.name)
+  @Type(() => Number)
   id: number;
 }
 

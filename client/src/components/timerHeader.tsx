@@ -3,7 +3,12 @@ import { useAuthContext } from "../context/authContext";
 
 export default function TimerHeader({ onSelect }) {
   const [friends, setFriends] = useState([]);
-  const { friendName } = useAuthContext();
+  const { friendName, setSignedIn } = useAuthContext();
+  const [selected, setSelected] = useState();
+
+  const logout = () => {
+    fetch("/api/auth/logout").then(() => setSignedIn(false));
+  };
 
   useEffect(() => {
     fetch("/api/auth/friends")
@@ -12,13 +17,42 @@ export default function TimerHeader({ onSelect }) {
   }, []);
 
   return (
-    <>
-      <div>{friendName}</div>
-      {friends.map((friend) => (
-        <div key={friend.id}>
-          <p>{friend.name}</p>
+    <nav className="nav">
+      <div className="nav-left">
+        <div className="tabs">
+          <a
+            onClick={() => {
+              setSelected(undefined);
+              onSelect(undefined);
+            }}
+            className={selected ? "" : "active"}
+          >
+            all
+          </a>
+          {friends.map((friend) => (
+            <a
+              key={friend.id}
+              onClick={() => {
+                setSelected(friend.id);
+                onSelect({ friendId: friend.id });
+              }}
+              className={selected === friend.id ? "active" : ""}
+            >
+              {friend.name}
+            </a>
+          ))}
         </div>
-      ))}
-    </>
+      </div>
+      <div className="nav-right">
+        <details className="dropdown">
+          <summary className="button outline">{friendName}</summary>
+          <div className="card">
+            <a onClick={logout} className="text-error">
+              Logout
+            </a>
+          </div>
+        </details>
+      </div>
+    </nav>
   );
 }
