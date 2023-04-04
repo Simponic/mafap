@@ -1,19 +1,24 @@
 import { ago } from "../utils/ago";
 import { useEffect, useState } from "react";
 
-const replaceReferencedFriendsInName = (name, referencedFriends) => {
+const replaceReferencedFriendsInName = (name, referencedFriends, onSelect) => {
   const friendIdToFriend = referencedFriends.reduce((friendMap, friend) => {
     friendMap[friend.id] = friend;
     return friendMap;
   }, {});
-  return name.replaceAll(
-    /@\<(\d+)\>/g,
-    (_match, id) => friendIdToFriend[id].name
-  );
-};
-//  name.replaceAll(
+  return name.split(/(@\<\d+\>)/g).map((s) => {
+    const matches = /@\<(\d+)\>/g.exec(s);
+    if (matches) {
+      const [_match, id] = matches;
+      const name = friendIdToFriend[id].name;
 
-export default function TimerCard({ timer }) {
+      return <a onClick={() => onSelect({ friendId: id })}>{name}</a>;
+    }
+    return s;
+  });
+};
+
+export default function TimerCard({ timer, onSelect }) {
   const [since, setSince] = useState(ago(timer.start));
 
   useEffect(() => {
@@ -33,7 +38,13 @@ export default function TimerCard({ timer }) {
   return (
     <h1>
       <code>{since}</code>{" "}
-      {replaceReferencedFriendsInName(timer.name, timer.referenced_friends)}
+      {replaceReferencedFriendsInName(
+        timer.name,
+        timer.referenced_friends,
+        onSelect
+      ).map((s, i) => (
+        <span key={i}>{s}</span>
+      ))}
     </h1>
   );
 }

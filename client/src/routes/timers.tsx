@@ -42,6 +42,20 @@ export default function Timers() {
     namespace: "/events/timers",
     query: {},
   });
+  const [friends, setFriends] = useState([]);
+  const [selected, setSelected] = useState();
+
+  useEffect(() => {
+    fetch("/api/auth/friends")
+      .then((r) => r.json())
+      .then((friends) => setFriends(friends));
+  }, []);
+
+  const onSelect = (selected: TimersFilter) => {
+    setSelected(selected);
+    setEndpoint(makeEndpoint(selected));
+    setQuery(selected);
+  };
 
   useEffect(() => {
     socket?.on("refreshed", (newTimer: TimerResponse) => {
@@ -60,12 +74,7 @@ export default function Timers() {
 
   return (
     <div className="container">
-      <TimerHeader
-        onSelect={(selected: TimersFilter) => {
-          setEndpoint(makeEndpoint(selected));
-          setQuery(selected);
-        }}
-      />
+      <TimerHeader friends={friends} selected={selected} onSelect={onSelect} />
       {timers ? (
         timers
           .map((timer) => ({
@@ -73,7 +82,9 @@ export default function Timers() {
             start: new Date(timer.start),
           }))
           .sort(({ start: startA }, { start: startB }) => startB - startA)
-          .map((timer) => <TimerCard timer={timer} key={timer.id} />)
+          .map((timer) => (
+            <TimerCard onSelect={onSelect} timer={timer} key={timer.id} />
+          ))
       ) : (
         <></>
       )}

@@ -57,7 +57,11 @@ export default function Login() {
 
     setErrors([error]);
   };
-  if (signedIn) return <Navigate to="/" />;
+
+  if (signedIn) {
+    return <Navigate to="/" />;
+  }
+
   if (!token)
     return (
       <div className="body-centered">
