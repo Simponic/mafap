@@ -45,12 +45,12 @@ export default function TimerHeader({ onSelect }) {
       </div>
       <div className="nav-right">
         <details className="dropdown">
-          <summary className="button outline">{friendName}</summary>
-          <div className="card">
-            <a onClick={logout} className="text-error">
-              Logout
-            </a>
-          </div>
+          <summary style={{ marginTop: "1rem" }} className="button outline">
+            {friendName}
+          </summary>
+          <a className="button outline text-error" onClick={logout}>
+            Logout
+          </a>
         </details>
       </div>
     </nav>
