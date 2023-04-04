@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Param,
   Req,
   Query,
   NotFoundException,
@@ -10,8 +11,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { TimerService } from './timer.service';
+import { TimerGateway } from './timer.gateway';
 import { AuthService } from '../auth/auth.service';
-import { CreateTimerDTO, RetrieveFriendDTO } from '../dto/dtos';
+import {
+  RefreshTimerDTO,
+  CreateTimerDTO,
+  RetrieveFriendDTO,
+} from '../dto/dtos';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Prisma } from '@prisma/client';
 
@@ -19,20 +25,36 @@ import { Prisma } from '@prisma/client';
 @UseGuards(AuthGuard)
 export class TimerController {
   constructor(
+    private readonly timerGateway: TimerGateway,
     private readonly timerService: TimerService,
     private readonly authService: AuthService,
   ) {}
 
   @Get()
   public async getAllTimers() {
-    return this.timerService.getAll();
+    return await this.timerService.getAll();
   }
 
   @Get('/friend')
-  public async getFriendTimers(@Query() { name }: RetrieveFriendDTO) {
-    const friend = await this.authService.findFriendByName(name);
-    if (!friend) throw new NotFoundException('Friend not found with that name');
-    return this.timerService.friendTimers(friend);
+  public async getFriendTimers(@Query() { id, name }: RetrieveFriendDTO) {
+    const friend = await this.authService.findFriendByNameOrId(name, id);
+    if (!friend) throw new NotFoundException('Friend not found by that query');
+
+    return await this.timerService.friendTimers(friend);
+  }
+
+  @Post('/:id/refresh')
+  public async refreshTimer(@Param() { id }: RefreshTimerDTO, @Req() req) {
+    const timer = await this.timerService.findTimerById(id);
+    if (!timer) throw new NotFoundException('No such timer with id');
+
+    const refreshedTimer = await this.timerService.refreshTimer(
+      timer,
+      req.friend,
+    );
+    this.timerGateway.timerRefreshed(refreshedTimer);
+
+    return refreshedTimer;
   }
 
   @Post()
@@ -50,8 +72,9 @@ export class TimerController {
         'Can link no more than 10 unique friends to timer',
       );
 
+    let timer;
     try {
-      return await this.timerService.createTimerWithFriends(
+      timer = await this.timerService.createTimerWithFriends(
         {
           name,
           created_by: {
@@ -71,5 +94,9 @@ export class TimerController {
 
       throw e;
     }
+
+    this.timerGateway.timerCreated(timer);
+
+    return timer;
   }
 }

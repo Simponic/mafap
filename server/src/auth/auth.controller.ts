@@ -31,16 +31,22 @@ export class AuthController {
     return await this.authService.deleteToken(req.token);
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/friends')
+  public async allFriends() {
+    return await this.authService.allFriends();
+  }
+
   @Get('/')
-  async makeGodToken(@Query() query: RetrieveFriendDTO) {
-    const friend = await this.authService.findFriendByName(query.name);
-    if (!friend) throw new NotFoundException('Friend not found with that name');
+  public async makeGodToken(@Query() { name, id }: RetrieveFriendDTO) {
+    const friend = await this.authService.findFriendByNameOrId(name, id);
+    if (!friend) throw new NotFoundException('Friend not found by that query');
 
     return await this.authService.createTokenForFriend(friend);
   }
 
   @Post()
-  async verifyFriend(
+  public async verifyFriend(
     @Res({ passthrough: true }) res,
     @Body() { signature }: SignedGodTokenDTO,
   ) {
@@ -59,6 +65,10 @@ export class AuthController {
     );
     if (!referencedToken)
       throw new NotFoundException('Could not find God Token to sign');
+    if (referencedToken.signed)
+      throw new BadRequestException(
+        'God Token was already signed - no replay attacks plz',
+      );
 
     const { friend } = referencedToken;
     const publicKeyObj = await readKey({ armoredKey: friend.public_key });

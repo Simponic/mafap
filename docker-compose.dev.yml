@@ -18,6 +18,9 @@ services:
       - 8000:80
     networks:
       - app
+    depends_on:
+      - server
+      - client
     build:
       context: ./nginx
       dockerfile: Dockerfile.dev

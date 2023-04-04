@@ -13,7 +13,8 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
-    if (!req.cookies.god_token) throw new UnauthorizedException('No session');
+    if (req && req.cookies && !req.cookies.god_token)
+      throw new UnauthorizedException('No session');
 
     const token = await this.authService.findGodTokenWithFriend(
       req.cookies.god_token,

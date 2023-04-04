@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Friend } from '@prisma/client';
+import { Friend, Prisma } from '@prisma/client';
 import { randomInt } from 'crypto';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,9 +18,28 @@ export class AuthService {
       .map(() => words[randomInt(0, words.length)])
       .join(' ');
 
+  static FRIEND_SELECT = {
+    id: true,
+    name: true,
+  } as Prisma.FriendSelect;
+
+  public allFriends() {
+    return this.prismaService.friend.findMany({
+      select: AuthService.FRIEND_SELECT,
+    });
+  }
+
   public findFriendByName(name: string) {
     return this.prismaService.friend.findUnique({
       where: { name },
+    });
+  }
+
+  public findFriendByNameOrId(name: string, id: number) {
+    let where: Prisma.FriendWhereUniqueInput = { name };
+    if (typeof id !== 'undefined') where = { id };
+    return this.prismaService.friend.findUnique({
+      where,
     });
   }
 

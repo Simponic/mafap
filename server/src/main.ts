@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { AuthenticatedSocketIoAdapter } from './auth/authServer.adapter';
 
 import * as cookieParser from 'cookie-parser';
 
@@ -10,6 +11,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  // TODO: Remove
+  app.enableCors();
+
+  // All WS connections must be auth'd
+  app.useWebSocketAdapter(new AuthenticatedSocketIoAdapter(app));
 
   app.useGlobalPipes(
     new ValidationPipe({

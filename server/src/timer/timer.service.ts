@@ -1,30 +1,32 @@
-import { Friend, Prisma } from '@prisma/client';
+import { Friend, Timer, Prisma } from '@prisma/client';
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from '../prisma/prisma.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class TimerService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  static TIMER_SELECT = {
+    id: true,
+    name: true,
+    start: true,
+  } as Prisma.TimerSelect;
+
+  static INCLUDE_FRIENDS_SELECT = {
+    referenced_friends: {
+      select: AuthService.FRIEND_SELECT,
+    },
+    created_by: {
+      select: AuthService.FRIEND_SELECT,
+    },
+  };
+
   public getAll() {
     return this.prismaService.timer.findMany({
       select: {
-        id: true,
-        name: true,
-        start: true,
-        referenced_friends: {
-          select: {
-            name: true,
-            id: true,
-          },
-        },
-        created_by: {
-          select: {
-            name: true,
-            id: true,
-          },
-        },
+        ...TimerService.TIMER_SELECT,
+        ...TimerService.INCLUDE_FRIENDS_SELECT,
       },
     });
   }
@@ -32,41 +34,82 @@ export class TimerService {
   public friendTimers(friend: Friend) {
     return this.prismaService.timer.findMany({
       select: {
-        id: true,
-        name: true,
-        start: true,
+        ...TimerService.TIMER_SELECT,
         referenced_friends: {
           where: {
             id: friend.id,
           },
-          select: {
-            id: true,
-            name: true,
-          },
+          select: AuthService.FRIEND_SELECT,
         },
         created_by: {
-          select: {
-            name: true,
-            id: true,
-          },
+          select: AuthService.FRIEND_SELECT,
         },
       },
     });
   }
 
+  public findTimerById(id: number) {
+    return this.prismaService.timer.findUnique({
+      where: { id },
+    });
+  }
+
+  public async refreshTimer(timer: Timer, friend: Friend) {
+    const now = new Date();
+    const select = {
+      ...TimerService.TIMER_SELECT,
+      ...TimerService.INCLUDE_FRIENDS_SELECT,
+    };
+    const refreshedTimer = await this.prismaService.timer.update({
+      where: { id: timer.id },
+      data: {
+        start: now,
+      },
+      select,
+    });
+
+    await this.prismaService.timerRefreshes.create({
+      data: {
+        start: timer.start,
+        end: now,
+        refreshed_by: {
+          connect: {
+            id: friend.id,
+          },
+        },
+        timer: {
+          connect: {
+            id: timer.id,
+          },
+        },
+      },
+    });
+
+    return refreshedTimer;
+  }
+
   public createTimerWithFriends(
     timer: Prisma.TimerCreateInput,
-    friendIds: number[],
+    referencedFriendIds: number[],
   ) {
-    if (friendIds.length > 0)
+    const select = {
+      ...TimerService.TIMER_SELECT,
+      ...TimerService.INCLUDE_FRIENDS_SELECT,
+    };
+    if (referencedFriendIds.length > 0)
       return this.prismaService.timer.create({
         data: {
           ...timer,
           referenced_friends: {
-            connect: friendIds.map((id) => ({ id })),
+            connect: referencedFriendIds.map((id) => ({ id })),
           },
         },
+        select,
       });
-    return this.prismaService.timer.create({ data: timer });
+
+    return this.prismaService.timer.create({
+      data: timer,
+      select,
+    });
   }
 }
