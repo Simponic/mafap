@@ -12,7 +12,7 @@ export type TimerResponse = {
   message?: string;
   id?: number;
   name?: string;
-  start?: Date;
+  start?: Date | string;
   created_by?: Friend;
   referenced_friends?: Friend[];
   timer_refreshes?: TimerRefresh[];

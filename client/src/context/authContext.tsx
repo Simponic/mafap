@@ -1,7 +1,7 @@
 import React, { useContext, useState, createContext, useEffect } from "react";
 
 interface authContext {
-  signedIn: boolean;
+  signedIn?: boolean;
   setSignedIn: (signedIn: boolean) => void;
   sessionOver: Date;
   setSessionOver: (expiry: Date) => void;

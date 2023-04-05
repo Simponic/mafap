@@ -68,9 +68,13 @@ export default function Timers() {
           timers
             .sort(
               (
-                { start: startA }: { start: string },
-                { start: startB }: { start: string }
-              ) => new Date(startB).getTime() - new Date(startA).getTime()
+                { start: startA }: { start?: Date | string | undefined },
+                { start: startB }: { start?: Date | string | undefined }
+              ) => {
+                if (!startA) return -1;
+                if (!startB) return 1;
+                return new Date(startB).getTime() - new Date(startA).getTime();
+              }
             )
             .map((timer) => (
               <TimerCard key={timer.id} onSelect={onSelect} timer={timer} />

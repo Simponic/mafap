@@ -27,10 +27,13 @@ const replaceReferencedFriendsInName = (
   });
 };
 
-const refreshTimer = (id: number) =>
-  fetch(`/api/timers/${id}/refresh`, {
+const refreshTimer = (id?: number) => {
+  if (!id) return;
+
+  return fetch(`/api/timers/${id}/refresh`, {
     method: "POST",
   });
+};
 
 export type TimerCardProps = {
   timer: TimerResponse;
@@ -41,18 +44,20 @@ export default function TimerCard({ timer, onSelect }: TimerCardProps) {
   const [since, setSince] = useState<string>("");
 
   useEffect(() => {
-    const start = new Date(timer.start);
-    let updateTimersInterval: ReturnType<typeof setInterval>;
-    const msTillNextSecond = 1000 - (start.getTime() % 1000);
+    if (timer && timer.start) {
+      const start = new Date(timer.start);
+      let updateTimersInterval: ReturnType<typeof setInterval>;
+      const msTillNextSecond = 1000 - (start.getTime() % 1000);
 
-    setSince(ago(start));
+      setSince(ago(start));
 
-    setTimeout(() => {
-      updateTimersInterval = setInterval(() => setSince(ago(start)), 1_000);
-    }, msTillNextSecond);
+      setTimeout(() => {
+        updateTimersInterval = setInterval(() => setSince(ago(start)), 1_000);
+      }, msTillNextSecond);
 
-    return () => clearInterval(updateTimersInterval);
-  }, [timer.start]);
+      return () => clearInterval(updateTimersInterval);
+    }
+  }, [timer?.start]);
 
   return (
     <div className="card grid-card">
@@ -63,36 +68,44 @@ export default function TimerCard({ timer, onSelect }: TimerCardProps) {
           </h4>
         </header>
         <p>
-          {replaceReferencedFriendsInName(
-            timer.name,
-            timer.referenced_friends,
-            onSelect
-          ).map((element: JSX.Element | string, i: number) => (
-            <span style={{ overflowWrap: "anywhere", hyphens: "auto" }} key={i}>
-              {element}
-            </span>
-          ))}
+          {timer?.name && timer?.referenced_friends ? (
+            replaceReferencedFriendsInName(
+              timer.name,
+              timer.referenced_friends,
+              onSelect
+            ).map((element: JSX.Element | string, i: number) => (
+              <span
+                style={{ overflowWrap: "anywhere", hyphens: "auto" }}
+                key={i}
+              >
+                {element}
+              </span>
+            ))
+          ) : (
+            <> </>
+          )}
         </p>
       </div>
       <div className="timer-metadata text-grey italic">
-        <div>
-          <a
-            onClick={() =>
-              onSelect({ friendId: timer.timer_refreshes[0].refreshed_by.id })
-            }
-          >
-            {" "}
-            {timer.created_by.name}
-          </a>{" "}
-          is tracking this
-        </div>
+        {timer.created_by ? (
+          <div>
+            <a onClick={() => onSelect({ friendId: timer?.created_by?.id })}>
+              {timer.created_by.name}
+            </a>{" "}
+            is tracking this
+          </div>
+        ) : (
+          <div>has no creator?</div>
+        )}
         <div>
           {timer.timer_refreshes && timer.timer_refreshes.length ? (
             <span>
               <a
                 onClick={() =>
                   onSelect({
-                    friendId: timer.timer_refreshes[0].refreshed_by.id,
+                    friendId: timer.timer_refreshes
+                      ? timer.timer_refreshes[0].refreshed_by.id
+                      : undefined,
                   })
                 }
               >
@@ -104,8 +117,9 @@ export default function TimerCard({ timer, onSelect }: TimerCardProps) {
             "has not yet been refreshed..."
           )}
         </div>
+
         <button
-          onClick={() => refreshTimer(timer.id)}
+          onClick={() => refreshTimer(timer?.id)}
           className="button outline"
         >
           Refresh
