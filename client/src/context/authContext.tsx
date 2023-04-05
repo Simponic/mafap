@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               ["friendId", "friendName"].map((x) => localStorage.removeItem(x));
               return false;
             }
-            return signedIn;
+            return !!signedIn;
           });
         }
         return sessionOver;
