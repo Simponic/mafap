@@ -20,10 +20,12 @@ export default function TimerHeader({
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [newTimerName, setNewTimerName] = useState<string>("");
   const [errors, setErrors] = useState<string[]>([]);
-  const { friendName, setSignedIn } = useAuthContext();
+  const { friendName, setSessionOver } = useAuthContext();
 
   const logout = () => {
-    fetch("/api/auth/logout").then(() => setSignedIn(false));
+    fetch("/api/auth/logout").then(() => {
+      setSessionOver(new Date());
+    });
   };
 
   const createTimer = (e: any) => {

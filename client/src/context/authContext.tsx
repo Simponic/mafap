@@ -79,10 +79,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
             return !!signedIn;
           });
+        } else {
+          setSignedIn(true);
         }
+
         return sessionOver;
       });
-    }, sessionOver.getTime() - Date.now());
+    }, Math.max(0, sessionOver.getTime() - Date.now()));
   }, [sessionOver]);
 
   return (
