@@ -27,38 +27,90 @@ const replaceReferencedFriendsInName = (
   });
 };
 
+const refreshTimer = (id: number) =>
+  fetch(`/api/timers/${id}/refresh`, {
+    method: "POST",
+  });
+
 export type TimerCardProps = {
   timer: TimerResponse;
   onSelect: (select?: TimersFilter) => void;
 };
 
 export default function TimerCard({ timer, onSelect }: TimerCardProps) {
-  const [since, setSince] = useState<string>(ago(timer.start));
+  const [since, setSince] = useState<string>("");
 
   useEffect(() => {
+    const start = new Date(timer.start);
     let updateTimersInterval: ReturnType<typeof setInterval>;
-    const msTillNextSecond = 1000 - (timer.start.getTime() % 1000);
+    const msTillNextSecond = 1000 - (start.getTime() % 1000);
+
+    setSince(ago(start));
 
     setTimeout(() => {
-      updateTimersInterval = setInterval(
-        () => setSince(ago(timer.start)),
-        1_000
-      );
+      updateTimersInterval = setInterval(() => setSince(ago(start)), 1_000);
     }, msTillNextSecond);
 
     return () => clearInterval(updateTimersInterval);
-  }, []);
+  }, [timer.start]);
 
   return (
-    <h1>
-      <code>{since}</code>{" "}
-      {replaceReferencedFriendsInName(
-        timer.name,
-        timer.referenced_friends,
-        onSelect
-      ).map((element: JSX.Element | string, i: number) => (
-        <span key={i}>{element}</span>
-      ))}
-    </h1>
+    <div className="card grid-card">
+      <div>
+        <header>
+          <h4 className="is-center">
+            <code>{since || "..."}</code>
+          </h4>
+        </header>
+        <p>
+          {replaceReferencedFriendsInName(
+            timer.name,
+            timer.referenced_friends,
+            onSelect
+          ).map((element: JSX.Element | string, i: number) => (
+            <span style={{ overflowWrap: "anywhere", hyphens: "auto" }} key={i}>
+              {element}
+            </span>
+          ))}
+        </p>
+      </div>
+      <div className="timer-metadata text-grey italic">
+        <div>
+          <a
+            onClick={() =>
+              onSelect({ friendId: timer.timer_refreshes[0].refreshed_by.id })
+            }
+          >
+            {" "}
+            {timer.created_by.name}
+          </a>{" "}
+          is tracking this
+        </div>
+        <div>
+          {timer.timer_refreshes && timer.timer_refreshes.length ? (
+            <span>
+              <a
+                onClick={() =>
+                  onSelect({
+                    friendId: timer.timer_refreshes[0].refreshed_by.id,
+                  })
+                }
+              >
+                {timer.timer_refreshes[0].refreshed_by.name}
+              </a>{" "}
+              refreshed it last
+            </span>
+          ) : (
+            "has not yet been refreshed..."
+          )}
+        </div>
+        <button
+          onClick={() => refreshTimer(timer.id)}
+          className="button outline"
+        >
+          Refresh
+        </button>
+      </div>
+    </div>
   );
 }

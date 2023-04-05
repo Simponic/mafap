@@ -2,11 +2,9 @@ import Modal from "react-modal";
 import { useEffect, useState } from "react";
 import { Mention, MentionsInput } from "react-mentions";
 import { useAuthContext } from "../context/authContext";
+import { Friend, TimersFilter, TimerResponse } from "../utils/types";
 import mentionStyles from "../styles/mention";
 import modalStyles from "../styles/modal";
-import { Friend, TimersFilter, TimerResponse } from "../utils/types";
-
-Modal.setAppElement("#root");
 
 export type TimerHeaderProps = {
   friends: Friend[];
@@ -62,49 +60,46 @@ export default function TimerHeader({
         onRequestClose={() => setModalOpen(false)}
         style={modalStyles}
       >
-        <div id="createTimerModal">
-          <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1rem",
-              }}
-            >
-              <h4 style={{ margin: "none" }}>New Timer</h4>
-
-              <a onClick={() => setModalOpen(false)} className="button outline">
-                &times;
-              </a>
-            </div>
+        <div>
+          <div className="my-modal-header">
             <div>
-              <form onSubmit={createTimer}>
-                <MentionsInput
-                  style={mentionStyles}
-                  value={newTimerName}
-                  onChange={(e: any) => setNewTimerName(e.target.value)}
-                >
-                  <Mention
-                    trigger="@"
-                    data={friends.map(({ id, name }: Friend) => ({
-                      id: `@<${id}>`,
-                      display: `@${name}`,
-                    }))}
-                  />
-                </MentionsInput>
-                {errors.length ? (
-                  errors.map((error, i) => (
-                    <div key={i} className="text-error">
-                      {error}
-                    </div>
-                  ))
-                ) : (
-                  <></>
-                )}
-                <button type="submit">Add</button>
-              </form>
+              <h4>New Timer</h4>
+              <p>
+                Use <code>@</code> and the autocomplete menu to reference a user
+              </p>
             </div>
+
+            <a onClick={() => setModalOpen(false)} className="button outline">
+              &times;
+            </a>
+          </div>
+          <div>
+            <form onSubmit={createTimer}>
+              <MentionsInput
+                placeholder="since @..."
+                style={mentionStyles}
+                value={newTimerName}
+                onChange={(e: any) => setNewTimerName(e.target.value)}
+              >
+                <Mention
+                  trigger="@"
+                  data={friends.map(({ id, name }: Friend) => ({
+                    id: `@<${id}>`,
+                    display: `@${name}`,
+                  }))}
+                />
+              </MentionsInput>
+              {errors.length ? (
+                errors.map((error, i) => (
+                  <div key={i} className="text-error">
+                    {error}
+                  </div>
+                ))
+              ) : (
+                <></>
+              )}
+              <button type="submit">Add</button>
+            </form>
           </div>
         </div>
       </Modal>
@@ -135,8 +130,8 @@ export default function TimerHeader({
         </div>
         <div className="nav-right">
           <a
-            onClick={() => setModalOpen(true)}
             style={{ marginTop: "1rem" }}
+            onClick={() => setModalOpen(true)}
             className="button outline"
           >
             +
@@ -145,7 +140,7 @@ export default function TimerHeader({
             <summary style={{ marginTop: "1rem" }} className="button outline">
               {friendName}
             </summary>
-            <a className="button outline text-error" onClick={logout}>
+            <a className="button outline text-error bg-light" onClick={logout}>
               Logout
             </a>
           </details>

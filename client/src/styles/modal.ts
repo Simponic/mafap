@@ -6,7 +6,7 @@ export default {
     bottom: "auto",
     marginRight: "-50%",
     transform: "translate(-50%, -50%)",
-    width: "40vw",
-    maxWidth: "800px",
+    width: "60vw",
+    maxWidth: "500px",
   },
 };

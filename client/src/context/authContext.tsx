@@ -25,7 +25,7 @@ const AuthContext = createContext<authContext>({
 export const useAuthContext = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [signedIn, setSignedIn] = useState<boolean>(false);
+  const [signedIn, setSignedIn] = useState<boolean | undefined>();
   const [sessionOver, setSessionOver] = useState<Date>(new Date());
   const [friendId, setFriendId] = useState<number | null>(null);
   const [friendName, setFriendName] = useState<string | null>(null);

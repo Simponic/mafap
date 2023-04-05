@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import { useAuthContext } from "../context/authContext";
+import { Navigate } from "react-router-dom";
 import { SignThisTokenResponse, TokenResponse } from "../utils/types";
 import "../styles/login.css";
 
@@ -28,6 +28,7 @@ const submitSignedToken = async (signature: string): Promise<TokenResponse> =>
 export default function Login() {
   const [token, setToken] = useState<string>("");
   const [errors, setErrors] = useState<string[]>([]);
+  const [authFinished, setAuthFinished] = useState<boolean>(false);
 
   const { signedIn, setSignedIn, setSessionOver, setFriendId, setFriendName } =
     useAuthContext();
@@ -58,6 +59,8 @@ export default function Login() {
       setFriendId(friend.id);
       setFriendName(friend.name);
 
+      setAuthFinished(true);
+
       return;
     }
 
@@ -65,10 +68,6 @@ export default function Login() {
       setErrors([message as string]);
     }
   };
-
-  if (signedIn) {
-    return <Navigate to="/" />;
-  }
 
   if (!token)
     return (
@@ -87,38 +86,41 @@ export default function Login() {
               <></>
             )}
 
-            <button type="submit">Request Token</button>
+            <button type="submit">Request A Token</button>
           </div>
         </form>
       </div>
     );
-  return (
-    <div className="body-centered">
-      <div className="login card">
-        <div>Please sign the following payload with your PGP key:</div>
-        <code>{token}</code>
-        <hr />
-        <form onSubmit={signTokenFormSubmission}>
-          <textarea
-            id="signature"
-            name="signature"
-            rows={6}
-            placeholder="-----BEGIN PGP SIGNED MESSAGE-----"
-          />
+  else if (token && !authFinished) {
+    return (
+      <div className="body-centered">
+        <div className="login card">
+          <div>Please sign the following payload with your PGP key:</div>
+          <code>{token}</code>
+          <hr />
+          <form onSubmit={signTokenFormSubmission}>
+            <textarea
+              id="signature"
+              name="signature"
+              rows={6}
+              placeholder="-----BEGIN PGP SIGNED MESSAGE-----"
+            />
 
-          {errors.length ? (
-            errors.map((error, i) => (
-              <div key={i} className="text-error">
-                {error}
-              </div>
-            ))
-          ) : (
-            <></>
-          )}
+            {errors.length ? (
+              errors.map((error, i) => (
+                <div key={i} className="text-error">
+                  {error}
+                </div>
+              ))
+            ) : (
+              <></>
+            )}
 
-          <button type="submit">Log In</button>
-        </form>
+            <button type="submit">Log In</button>
+          </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+  return <Navigate to="/" />;
 }

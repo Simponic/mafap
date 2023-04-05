@@ -9,7 +9,7 @@ export type ProtectedRouteProps = {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { signedIn } = useAuthContext();
 
-  if (!signedIn) return <Navigate to="/login" />;
-
-  return children;
+  if (signedIn === false) return <Navigate to="/login" />;
+  if (signedIn) return children;
+  return <></>; // While it's undefined - we're checking localstorage
 }

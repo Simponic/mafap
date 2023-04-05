@@ -14,9 +14,10 @@ import { TimerService } from './timer.service';
 import { TimerGateway } from './timer.gateway';
 import { AuthService } from '../auth/auth.service';
 import {
-  RefreshTimerDTO,
+  RetrieveTimerDTO,
   CreateTimerDTO,
   RetrieveFriendDTO,
+  GetPageDTO,
 } from '../dto/dtos';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Prisma } from '@prisma/client';
@@ -42,8 +43,22 @@ export class TimerController {
     return await this.timerService.friendTimers(friend);
   }
 
+  @Get('/:id/refreshes')
+  public async getTimerAndRefreshes(
+    @Param() { id }: RetrieveTimerDTO,
+    @Query() page: GetPageDTO,
+  ) {
+    const timer = await this.timerService.findTimerById(id);
+    if (!timer) throw new NotFoundException('No such timer with id');
+
+    return {
+      ...timer,
+      timer_refreshes: await this.timerService.getRefreshesPaged(timer, page),
+    };
+  }
+
   @Post('/:id/refresh')
-  public async refreshTimer(@Param() { id }: RefreshTimerDTO, @Req() req) {
+  public async refreshTimer(@Param() { id }: RetrieveTimerDTO, @Req() req) {
     const timer = await this.timerService.findTimerById(id);
     if (!timer) throw new NotFoundException('No such timer with id');
 

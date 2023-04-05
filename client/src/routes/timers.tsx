@@ -18,7 +18,6 @@ export default function Timers() {
     data: timers,
     refreshData: refreshTimers,
     setData: setTimers,
-    query,
     setQuery,
     socket,
     setEndpoint,
@@ -64,24 +63,22 @@ export default function Timers() {
   return (
     <div className="container">
       <TimerHeader friends={friends} selected={selected} onSelect={onSelect} />
-      {timers ? (
-        timers
-          .map((timer) => ({
-            ...timer,
-            start: new Date(timer.start),
-          }))
-          .sort(
-            (
-              { start: startA }: { start: Date },
-              { start: startB }: { start: Date }
-            ) => startB.getTime() - startA.getTime()
-          )
-          .map((timer) => (
-            <TimerCard onSelect={onSelect} timer={timer} key={timer.id} />
-          ))
-      ) : (
-        <></>
-      )}
+      <div className="card-grid">
+        {timers ? (
+          timers
+            .sort(
+              (
+                { start: startA }: { start: string },
+                { start: startB }: { start: string }
+              ) => new Date(startB).getTime() - new Date(startA).getTime()
+            )
+            .map((timer) => (
+              <TimerCard key={timer.id} onSelect={onSelect} timer={timer} />
+            ))
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
   );
 }

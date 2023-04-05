@@ -10,11 +10,18 @@ export type Friend = {
 export type TimerResponse = {
   error?: string;
   message?: string;
-  id: number;
-  name: string;
-  start: Date;
-  created_by: Friend;
-  referenced_friends: Friend[];
+  id?: number;
+  name?: string;
+  start?: Date;
+  created_by?: Friend;
+  referenced_friends?: Friend[];
+  timer_refreshes?: TimerRefresh[];
+};
+
+export type TimerRefresh = {
+  start: string;
+  end: string;
+  refreshed_by: Friend;
 };
 
 export type TokenResponse = {
@@ -22,7 +29,7 @@ export type TokenResponse = {
   message?: string;
   token?: string;
   expiration?: string;
-  friend: Friend;
+  friend?: Friend;
 };
 
 export type SignThisTokenResponse = {

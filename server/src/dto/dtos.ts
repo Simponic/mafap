@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, ValidateIf } from 'class-validator';
+import { IsNotEmpty, ValidateIf, Max, Min, MaxLength } from 'class-validator';
 
 export class SignedGodTokenDTO {
   @IsNotEmpty()
@@ -17,10 +17,21 @@ export class RetrieveFriendDTO {
 
 export class CreateTimerDTO {
   @IsNotEmpty()
+  @MaxLength(80)
   name: string;
 }
 
-export class RefreshTimerDTO {
+export class RetrieveTimerDTO {
   @Type(() => Number)
   id: number;
+}
+
+export class GetPageDTO {
+  @Type(() => Number)
+  @Max(500)
+  @Min(1)
+  take = 100;
+
+  @Type(() => Number)
+  skip = 0;
 }

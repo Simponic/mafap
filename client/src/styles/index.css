@@ -1,3 +1,49 @@
 a {
   cursor: pointer;
 }
+
+nav {
+  margin-bottom: 1rem;
+}
+
+.my-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: 1rem;
+}
+
+.grid-card {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+
+@media only screen and (max-width: 800px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media only screen and (max-width: 1200px) {
+  .card-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.italic {
+  font-style: italic;
+}
+
+.timer-metadata {
+  padding-top: 0.75rem;
+}
+
+.container {
+  margin-bottom: 2rem;
+}

@@ -31,7 +31,6 @@ services:
     env_file: .env.dev
     build:
       context: ./server
-      target: development
       dockerfile: Dockerfile.dev
     volumes:
       - ./server:/usr/src/app
